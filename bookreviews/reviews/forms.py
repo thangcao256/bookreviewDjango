@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Publisher, Review
+from .models import Publisher, Review, Book
 
 SEARCH_CHOICE = (
     ("title", "Title"),
@@ -25,3 +25,9 @@ class ReviewForm(forms.ModelForm):
         exclude = ["date_edited", "book"]
 
     rating = forms.IntegerField(min_value=0, max_value=5)
+
+
+class BookMediaForm(forms.ModelForm):
+    class Meta:
+        model = Book
+        fields = ["cover", "sample"]

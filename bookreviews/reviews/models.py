@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib import auth
 
+
 class Publisher(models.Model):
     """A company that publishes books."""
     name = models.CharField(max_length=50, help_text="The name of the Publisher.", verbose_name="Name's Publisher")
@@ -20,12 +21,19 @@ class Book(models.Model):
     contributors = models.ManyToManyField('Contributor', through="BookContributor")
 
     def isbn13(self):
-         """ '9780316769174' => '978-0-31-676917-4' """
-         return "{}-{}-{}-{}-{}".format(self.isbn[0:3], self.isbn[3:4], self.isbn[4:6], self.isbn[6:12], self.isbn[12:13])
+        """ '9780316769174' => '978-0-31-676917-4' """
+        return "{}-{}-{}-{}-{}".format(self.isbn[0:3], self.isbn[3:4], self.isbn[4:6], self.isbn[6:12],
+                                       self.isbn[12:13])
+
+    cover = models.ImageField(null=True,
+                              blank=True,
+                              upload_to="book_covers/")
+    sample = models.FileField(null=True,
+                              blank=True,
+                              upload_to="book_samples/")
 
     def __str__(self):
         return "{} ({})".format(self.title, self.isbn)
-
 
 class Contributor(models.Model):
     """
@@ -46,20 +54,24 @@ class Contributor(models.Model):
 
 
 class BookContributor(models.Model):
-     class ContributionRole(models.TextChoices):
-         AUTHOR = "AUTHOR", "Author"
-         CO_AUTHOR = "CO_AUTHOR", "Co-Author"
-         EDITOR = "EDITOR", "Editor"
+    class ContributionRole(models.TextChoices):
+        AUTHOR = "AUTHOR", "Author"
+        CO_AUTHOR = "CO_AUTHOR", "Co-Author"
+        EDITOR = "EDITOR", "Editor"
 
-     book = models.ForeignKey(Book, on_delete=models.CASCADE)
-     contributor = models.ForeignKey(Contributor, on_delete=models.CASCADE)
-     role = models.CharField(verbose_name="The role this contributor had in the book.", choices=ContributionRole.choices, max_length=20)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    contributor = models.ForeignKey(Contributor, on_delete=models.CASCADE)
+    role = models.CharField(verbose_name="The role this contributor had in the book.", choices=ContributionRole.choices,
+                            max_length=20)
 
 
 class Review(models.Model):
-     content = models.TextField(help_text="The Review text.")
-     rating = models.IntegerField(help_text="The rating the reviewer has given.")
-     date_created = models.DateTimeField(auto_now_add=True, help_text="The date and time the review was created.")
-     date_edited = models.DateTimeField(null=True, help_text="The date and time the review was last edited.")
-     creator = models.ForeignKey(auth.get_user_model(), on_delete=models.CASCADE)
-     book = models.ForeignKey(Book, on_delete=models.CASCADE, help_text="The Book that this review is for.")
+    content = models.TextField(help_text="The Review text.")
+    rating = models.IntegerField(help_text="The rating the reviewer has given.")
+    date_created = models.DateTimeField(auto_now_add=True, help_text="The date and time the review was created.")
+    date_edited = models.DateTimeField(null=True, help_text="The date and time the review was last edited.")
+    creator = models.ForeignKey(auth.get_user_model(), on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, help_text="The Book that this review is for.")
+
+
+

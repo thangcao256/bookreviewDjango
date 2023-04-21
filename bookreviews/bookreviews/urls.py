@@ -27,10 +27,22 @@ Including another URLconf
 from reviews.admin import admin_site
 from django.contrib import admin
 from django.urls import include, path
+from django.conf.urls.static import static
+
+urlpatterns = [path('admin/', admin.site.urls), ]
+from bookreviews import settings
+from bookreviews.views import profile
+# from bookreview_admin.admin import admin_site
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls),
     path('bookreview/', admin_site.urls),
     path('', include('reviews.urls')),
-    ]
+    path('accounts/profile/', profile, name='profile'),
+    path('accounts/', include(('django.contrib.auth.urls', 'auth'), namespace='accounts')),
+    # path('admin/', admin_site.urls),
+    path('admin/', admin.site.urls),
+]
 
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

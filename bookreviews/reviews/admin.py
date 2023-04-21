@@ -1,6 +1,7 @@
 from django.contrib.admin import AdminSite
 from django.contrib import admin
 from reviews.models import (Publisher, Contributor, Book, BookContributor, Review)
+from django.contrib.auth.admin import User
 
 
 class ContributorAdmin(admin.ModelAdmin):
@@ -54,3 +55,4 @@ admin_site.register(Contributor)
 admin_site.register(Book)
 admin_site.register(BookContributor)
 admin_site.register(Review)
+

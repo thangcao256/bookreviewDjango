@@ -35,6 +35,7 @@
 {%  load static %}
 <a class="navbar-brand" href="/">{% block brand %}<img src="{% static './images/logo.png' %}">{% endblock %}</a>
 {% block content %}
+    <a href="{{ MEDIA_URL }}test.txt">Dowload invoice</a>
     <ul class="list-group">
         {% for item in book_list %}
             <li class="list-group-item">

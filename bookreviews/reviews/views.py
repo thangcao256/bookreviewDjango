@@ -20,12 +20,17 @@
 
 
 from .utils import average_rating
-from .forms import SearchForm, PublisherForm, ReviewForm
+from .forms import SearchForm, PublisherForm, ReviewForm, BookMediaForm
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Book, Contributor, Publisher, Review
 # message cho phép đăng ký message để user biết thêm mới hay update
 from django.contrib import messages
 from django.utils import timezone
+from io import BytesIO
+from PIL import Image
+from django.core.files.images import ImageFile
+from django.contrib.auth.decorators import user_passes_test, permission_required, login_required
+from django.core.exceptions import PermissionDenied
 
 """
 Function based view
@@ -96,6 +101,7 @@ def book_search(request):
     return render(request, "reviews/search-results.html", {"form": form, "search_text": search_text, "books": books})
 
 
+@permission_required('edit_publisher')
 def publisher_edit(request, pk=None):
     if pk is not None:
         publisher = get_object_or_404(Publisher, pk=pk)
@@ -119,11 +125,14 @@ def publisher_edit(request, pk=None):
     return render(request, "reviews/instance-form.html",
                   {"form": form, "instance": publisher, "model_type": "Publisher"})
 
-
+@login_required
 def review_edit(request, book_pk, review_pk=None):
     book = get_object_or_404(Book, pk=book_pk)
     if review_pk is not None:
         review = get_object_or_404(Review, book_id=book_pk, pk=review_pk)
+        user = request.user
+        if not user.is_staff and review.creator.id != user.id:
+            raise PermissionDenied
     else:
         review = None
 
@@ -149,3 +158,26 @@ def review_edit(request, book_pk, review_pk=None):
                    "related_instance": book,
                    "related_model_type": "Book"
                    })
+
+@login_required
+def book_media(request, pk):
+    book = get_object_or_404(Book, pk=pk)
+    if request.method == "POST":
+        form = BookMediaForm(request.POST, request.FILES, instance=book)
+        if form.is_valid():
+            book = form.save(False)
+            cover = form.cleaned_data.get("cover")
+        if cover:
+            image = Image.open(cover)
+            image.thumbnail((300, 300))
+            image_data = BytesIO()
+            image.save(fp=image_data, format=cover.image.format)
+            image_file = ImageFile(image_data)
+            book.cover.save(cover.name, image_file)
+        book.save()
+        messages.success(request, "Book \"{}\" was successfully updated.".format(book))
+        return redirect("book_detail", book.pk)
+    else:
+        form = BookMediaForm(instance=book)
+    return render(request, "reviews/instance-form.html",
+                  {"instance": book, "form": form, "model_type": "Book", "is_file_upload": True})
